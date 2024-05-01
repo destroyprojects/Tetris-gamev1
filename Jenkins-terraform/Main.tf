@@ -1,5 +1,5 @@
-resource "aws_iam_role" "example_role" {
-  name = "Jenkins-terraform"
+resource "aws_iam_role" "rol_ec2_jenkins" {
+  name = "Jenkins-Terraform"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -16,19 +16,20 @@ resource "aws_iam_role" "example_role" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "example_attachment" {
-  role       = aws_iam_role.example_role.name
+resource "aws_iam_role_policy_attachment" "attach_iam_role_jenkins" {
+  role       = aws_iam_role.rol_ec2_jenkins.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-resource "aws_iam_instance_profile" "example_profile" {
-  name = "Jenkins-terraform"
-  role = aws_iam_role.example_role.name
+resource "aws_iam_instance_profile" "profile_ec2" {
+  name = "Jenkins-Terraform"
+  role = aws_iam_role.rol_ec2_jenkins.name
 }
 
 resource "aws_security_group" "Jenkins-sg" {
   name        = "Jenkins-Security Group"
   description = "Open 22,443,80,8080,9000"
+  vpc_id =  "vpc-0c933555d3aad9f34"
 
   # Define a single ingress rule to allow traffic on all specified ports
   ingress = [
@@ -60,10 +61,11 @@ resource "aws_security_group" "Jenkins-sg" {
 resource "aws_instance" "web" {
   ami                    = "ami-03f4878755434977f"
   instance_type          = "t2.large"
-  key_name               = "Argo key"
+  key_name               = "Jenkis-key"
   vpc_security_group_ids = [aws_security_group.Jenkins-sg.id]
   user_data              = templatefile("./install_jenkins.sh", {})
-  iam_instance_profile   = aws_iam_instance_profile.example_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.profile_ec2.name
+
 
   tags = {
     Name = "Jenkins Server"
